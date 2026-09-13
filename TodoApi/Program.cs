@@ -9,7 +9,8 @@ using TodoApi.Models;
 using TodoApi.Dtos;
 using Microsoft.IdentityModel.Tokens.Experimental;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-
+using Scalar.AspNetCore;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,12 +44,14 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 app.UseHttpsRedirection();
 app.UseAuthentication();
