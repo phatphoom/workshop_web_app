@@ -16,6 +16,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+var todoGroup = app.MapGroup("/api/todos").WithTags();
+
 
 var todos = new List<TodoGetDto>
 {
@@ -24,15 +26,15 @@ var todos = new List<TodoGetDto>
     new(3,"Implement Sleeping",true),
 };
 
-app.MapGet("/api/todos", () => Results.Ok(todos));
+todoGroup.MapGet("/", () => Results.Ok(todos));
 
-app.MapGet("/api/todos/{id}", (int id) =>
+todoGroup.MapGet("/{id}", (int id) =>
 {
     var todo = todos.FirstOrDefault(t => t.Id == id);
     return todo;
 });
 
-app.MapPost("/api/todos", (TodoCreateDto dto) =>
+todoGroup.MapPost("/", (TodoCreateDto dto) =>
 {
     var nextId = todos.Count == 0 ? 1 : todos.Max(t => t.Id) + 1;
     var todo = new TodoGetDto(nextId, dto.Title, false);
@@ -40,7 +42,7 @@ app.MapPost("/api/todos", (TodoCreateDto dto) =>
     return Results.Created($"/api/todos/{todo.Id}", todo);
 });
 
-app.MapPut("/api/todos/{id}", (int id, TodoUpdateDto dto) =>
+todoGroup.MapPut("/{id}", (int id, TodoUpdateDto dto) =>
 {
     try
     {
@@ -60,4 +62,32 @@ app.MapPut("/api/todos/{id}", (int id, TodoUpdateDto dto) =>
         return Results.Problem(ex.Message);
     }
 });
+
+todoGroup.MapDelete("/{id}", (int id) =>
+{
+    try
+    {
+        var todo = todos.FirstOrDefault(x => x.Id == id);
+        if (todo is null)
+        {
+            return Results.NotFound($"Todo with id {id} not found");
+        }
+        else if (todo.Id <= 0)  // จะ catch negative IDs ด้วย
+        {
+            Results.NotFound();  // แต่ไม่มี return!
+        }
+        todos.Remove(todo);
+        return Results.NoContent();
+    }
+    catch (ArgumentNullException)
+    {
+        return Results.Problem("message not nulll");
+    }
+    catch (Exception ex)
+    {
+        return Results.NotFound(ex.Message);
+    }
+
+});
+
 app.Run();
