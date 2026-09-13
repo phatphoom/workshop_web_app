@@ -115,22 +115,36 @@ todoGroup.MapPost("/", async (AppDbContext db, TodoCreateDto dto) =>
     var lastTodo = await db.Todos.OrderByDescending(t => t.Id).FirstOrDefaultAsync();
     var nextId = lastTodo is null ? 1 : lastTodo.Id + 1;
 
-    var todo = new TodoItem
+    try
     {
-        Id = nextId,
-        Title = dto.Title,
-        Iscompleted = false,
-        CreatedAt = DateTime.UtcNow
-    };
+        if (string.IsNullOrWhiteSpace(dto.Title))
+        {
+            return Results.Problem("Title is Require");
+        }
+        var todo = new TodoItem
+        {
+            Id = nextId,
+            Title = dto.Title,
+            Iscompleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+        db.Todos.Add(todo);
+        await db.SaveChangesAsync();
+        // store in memory 
+        // store in db
+
+        var todoGetDto = new TodoGetDto(todo.Id, todo.Title, todo.Iscompleted);
+
+        return Results.Created($"/{todo.Id}", todoGetDto);
+    }
+    catch (Exception)
+    {
+        return Results.Problem("something error");
+    }
 
     // store in memory 
-    db.Todos.Add(todo);
     // store in db
-    await db.SaveChangesAsync();
 
-    var todoGetDto = new TodoGetDto(todo.Id, todo.Title, todo.Iscompleted);
-
-    return Results.Created($"/{todo.Id}", todoGetDto);
 });
 
 #endregion
