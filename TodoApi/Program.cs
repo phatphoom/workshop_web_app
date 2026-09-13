@@ -130,7 +130,7 @@ todoGroup.MapPost("/", async (AppDbContext db, TodoCreateDto dto) =>
 
     var todoGetDto = new TodoGetDto(todo.Id, todo.Title, todo.Iscompleted);
 
-    return Results.Created($"/{todo.Id}", todo);
+    return Results.Created($"/{todo.Id}", todoGetDto);
 });
 
 #endregion
